@@ -24,4 +24,9 @@ $router->group(['middleware' => 'auth:api'], function () use ($router) {
     $router->post('/logout', 'AuthController@logout');
     $router->get('/companydesign', 'CompanyDesignController@index');
     $router->get('/country', 'CountryController@index');
+    $router->get('/company', 'CompanyController@index');
+    $router->post('/company', 'CompanyController@store');
+    $router->post('/company/update/{id}', 'CompanyController@update');
+    $router->put('/company/{id}', 'CompanyController@update');
+    $router->delete('/company/{id}', 'CompanyController@destroy');
 });
