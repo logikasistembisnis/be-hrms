@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class Country extends Model
 {
     protected $table = 'country';
-    protected $primaryKey = 'companydesignid';
+    protected $primaryKey = 'countryid';
     public $timestamps = false;
 
     protected $fillable = [
@@ -21,4 +21,10 @@ class Country extends Model
         'updatedby',
         'updatedon',
     ];
+
+    public function companies()
+{
+    return $this->hasMany(Company::class, 'country_id', 'countryid');
+}
+
 }
