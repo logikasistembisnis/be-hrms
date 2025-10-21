@@ -23,4 +23,5 @@ $router->group(['middleware' => 'auth:api'], function () use ($router) {
     $router->get('/me', 'AuthController@me');
     $router->post('/logout', 'AuthController@logout');
     $router->get('/companydesign', 'CompanyDesignController@index');
+    $router->get('/country', 'CountryController@index');
 });
