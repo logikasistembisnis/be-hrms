@@ -31,6 +31,7 @@ class CompanyController extends Controller
         $this->validate($request, [
             'name' => 'required|string|max:255',
             'countryid' => 'required|integer|exists:country,countryid',
+            'companydesignid' => 'integer|exists:companydesign,companydesignid',
             'logo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
 
@@ -56,6 +57,7 @@ class CompanyController extends Controller
             'createdby' => $request->createdby,
             'createdon' => Carbon::now(),
             'countryid' => $request->countryid,
+            'companydesignid' => $request->companydesignid,
         ]);
 
         return response()->json([
@@ -86,6 +88,7 @@ class CompanyController extends Controller
             'holdingflag',
             'desainperusahaan',
             'countryid',
+            'companydesignid',
         ];
 
         // Ambil field yang dikirim dan tidak kosong/null

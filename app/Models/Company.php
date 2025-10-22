@@ -31,6 +31,7 @@ class Company extends Model
         'updatedby',
         'updatedon',
         'countryid',
+        'companydesignid',
     ];
 
     protected $casts = [
@@ -43,5 +44,10 @@ class Company extends Model
     public function country()
     {
         return $this->belongsTo(Country::class, 'countryid', 'countryid');
+    }
+
+    public function companydesign()
+    {
+        return $this->belongsTo(CompanyDesign::class,'companydesignid', 'companydesignid');
     }
 }
