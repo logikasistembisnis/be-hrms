@@ -40,8 +40,6 @@ class Company extends Model
         'countryid' => 'integer'
     ];
 
-    protected $hidden = ['logo'];
-
     public function country()
     {
         return $this->belongsTo(Country::class, 'countryid', 'countryid');

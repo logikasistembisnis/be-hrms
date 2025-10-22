@@ -65,6 +65,7 @@ $app->configure('app');
 $app->configure('jwt');
 $app->configure('auth');
 $app->configure('database');
+$app->configure('filesystems');
 
 
 /*

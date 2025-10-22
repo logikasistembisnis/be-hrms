@@ -3,14 +3,21 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminat\Support\Facades\Storage;
 use App\Models\Company;
 use App\Models\Country;
+use Carbon\Carbon;
 
 class CompanyController extends Controller
 {
     public function index()
     {
-        $companies = Company::with('country')->get();
+        $companies = Company::with('country')->get()->map(function ($c) {
+            $c->logo_url = $c->logo 
+                ? url("/storage/logos/" . $c->logo)
+                : null;
+            return $c;
+        });
 
         return response()->json([
             'status' => 'success',
@@ -24,7 +31,15 @@ class CompanyController extends Controller
         $this->validate($request, [
             'name' => 'required|string|max:255',
             'countryid' => 'required|integer|exists:country,countryid',
+            'logo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        $logoName = null;
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+            $logoName = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/logos', $logoName);
+        }
 
         $company = Company::create([
             'name' => $request->name,
@@ -35,11 +50,11 @@ class CompanyController extends Controller
             'address' => $request->address,
             'telpno' => $request->telpno,
             'companyemail' => $request->companyemail,
-            'logo' => $request->logo,
+            'logo' => $logoName,
             'holdingflag' => $request->holdingflag ?? false,
             'desainperusahaan' => $request->desainperusahaan,
-            'createdby' => $request->createdby ?? 'system',
-            'createdon' => \Carbon\Carbon::now(),
+            'createdby' => $request->createdby,
+            'createdon' => Carbon::now(),
             'countryid' => $request->countryid,
         ]);
 
@@ -58,9 +73,21 @@ class CompanyController extends Controller
             return response()->json(['error' => 'Company not found'], 404);
         }
 
-        $company->update(array_merge($request->all(), [
+        $logoName = $company->logo;
+        if ($request->hasFile('logo')) {
+            // Hapus logo lama jika ada
+            if ($logoName && Storage::exists('public/logos/' . $logoName)) {
+                Storage::delete('public/logos/' . $logoName);
+            }
+            $file = $request->file('logo');
+            $logoName = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/logos', $logoName);
+        }
+
+        $company->update(array_merge($request->except('logo'), [
+            'logo' => $logoName,
             'updatedby' => $request->updatedby ?? 'system',
-            'updatedon' => \Carbon\Carbon::now(),
+            'updatedon' => Carbon::now(),
         ]));
 
         return response()->json([
@@ -76,6 +103,11 @@ class CompanyController extends Controller
         $company = Company::find($id);
         if (!$company) {
             return response()->json(['error' => 'Company not found'], 404);
+        }
+
+        // Hapus logo jika ada
+        if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
+            Storage::delete('public/logos/' . $company->logo);
         }
 
         $company->delete();
