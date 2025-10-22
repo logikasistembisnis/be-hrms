@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminat\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage;
 use App\Models\Company;
 use App\Models\Country;
 use Carbon\Carbon;
@@ -73,27 +73,55 @@ class CompanyController extends Controller
             return response()->json(['error' => 'Company not found'], 404);
         }
 
-        $logoName = $company->logo;
-        if ($request->hasFile('logo')) {
-            // Hapus logo lama jika ada
-            if ($logoName && Storage::exists('public/logos/' . $logoName)) {
-                Storage::delete('public/logos/' . $logoName);
+        // Daftar field yang boleh diupdate
+        $allowedFields = [
+            'name',
+            'brandname',
+            'entitytype',
+            'noindukberusaha',
+            'npwp',
+            'address',
+            'telpno',
+            'companyemail',
+            'holdingflag',
+            'desainperusahaan',
+            'countryid',
+        ];
+
+        // Ambil field yang dikirim dan tidak kosong/null
+        $data = [];
+        foreach ($allowedFields as $field) {
+            if ($request->filled($field)) {
+                $data[$field] = $request->input($field);
             }
-            $file = $request->file('logo');
-            $logoName = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('public/logos', $logoName);
         }
 
-        $company->update(array_merge($request->except('logo'), [
-            'logo' => $logoName,
-            'updatedby' => $request->updatedby ?? 'system',
-            'updatedon' => Carbon::now(),
-        ]));
+        // Tangani upload logo (opsional)
+        if ($request->hasFile('logo')) {
+            $file = $request->file('logo');
+
+            // Hapus logo lama jika ada
+            if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
+                Storage::delete('public/logos/' . $company->logo);
+            }
+
+            // Simpan logo baru
+            $logoName = time() . '_' . $file->getClientOriginalName();
+            $file->storeAs('public/logos', $logoName);
+            $data['logo'] = $logoName;
+        }
+
+        // Tambahkan metadata update
+        $data['updatedby'] = $request->updateby;
+        $data['updatedon'] = Carbon::now();
+
+        // Update data (hanya field yang dikirim)
+        $isUpdated = $company->update($data);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Company updated successfully',
-            'data' => $company
+            'data' => $company->fresh()
         ]);
     }
 
