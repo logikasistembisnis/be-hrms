@@ -25,16 +25,16 @@ $router->group(['middleware' => 'auth:api'], function () use ($router) {
 });
 
 $router->get('/companydesign', 'CompanyDesignController@index');
-    $router->get('/country', 'CountryController@index');
+$router->get('/country', 'CountryController@index');
 
-    $router->get('/company', 'CompanyController@index');
-    $router->put('/company', 'CompanyController@upsert');
-    $router->delete('/company/{id}', 'CompanyController@destroy');
+$router->get('/company', 'CompanyController@index');
+$router->put('/company', 'CompanyController@upsert');
+$router->delete('/company/{id}', 'CompanyController@destroy');
     
-    $router->get('/storage/{path:.*}', function ($path) {
-        $filePath = storage_path('app/public/' . $path);
-        if (!file_exists($filePath)) {
-            abort(404, 'File not found');
-        }
-        return response()->file($filePath);
-    });
+$router->get('/storage/{path:.*}', function ($path) {
+    $filePath = storage_path('app/public/' . $path);
+    if (!file_exists($filePath)) {
+        abort(404, 'File not found');
+    }
+    return response()->file($filePath);
+});
