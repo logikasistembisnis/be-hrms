@@ -10,6 +10,7 @@ use Carbon\Carbon;
 
 class CompanyController extends Controller
 {
+    // GET /company
     public function index()
     {
         $companies = Company::with('country')->get()->map(function ($c) {
@@ -26,105 +27,113 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    // PUT /company
+    public function upsert(Request $request)
     {
-        $this->validate($request, [
-            'name' => 'required|string|max:255',
-            'countryid' => 'required|integer|exists:country,countryid',
-            'companydesignid' => 'integer|exists:companydesign,companydesignid',
-            'logo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
-        ]);
+        $companiesData = $request->all();
 
-        $logoName = null;
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-            $logoName = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('public/logos', $logoName);
+        // Pastikan data berupa array
+        if (!is_array($companiesData)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Request body harus berupa array data perusahaan'
+            ], 400);
         }
 
-        $company = Company::create([
-            'name' => $request->name,
-            'brandname' => $request->brandname,
-            'entitytype' => $request->entitytype,
-            'noindukberusaha' => $request->noindukberusaha,
-            'npwp' => $request->npwp,
-            'address' => $request->address,
-            'telpno' => $request->telpno,
-            'companyemail' => $request->companyemail,
-            'logo' => $logoName,
-            'holdingflag' => $request->holdingflag ?? false,
-            'desainperusahaan' => $request->desainperusahaan,
-            'createdby' => $request->createdby,
-            'createdon' => Carbon::now(),
-            'countryid' => $request->countryid,
-            'companydesignid' => $request->companydesignid,
-        ]);
+        $results = [];
 
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Company created successfully',
-            'data' => $company
-        ], 201);
-    }
+        foreach ($companiesData as $data) {
+            // Validasi tiap item
+            $validated = validator($data, [
+                'companyid' => 'nullable|integer|exists:company,companyid',
+                'name' => 'required|string|max:255',
+                'countryid' => 'integer|exists:country,countryid',
+                'companydesignid' => 'integer|exists:companydesign,companydesignid',
+                'logo' => 'nullable|file|mimes:jpg,jpeg,png|max:2048',
+            ])->validate();
 
-    // PUT /company/{id}
-    public function update(Request $request, $id)
-    {
-        $company = Company::find($id);
-        if (!$company) {
-            return response()->json(['error' => 'Company not found'], 404);
-        }
+            $logoName = null;
 
-        // Daftar field yang boleh diupdate
-        $allowedFields = [
-            'name',
-            'brandname',
-            'entitytype',
-            'noindukberusaha',
-            'npwp',
-            'address',
-            'telpno',
-            'companyemail',
-            'holdingflag',
-            'desainperusahaan',
-            'countryid',
-            'companydesignid',
-        ];
+            // Tangani upload logo (jika dikirim via multipart)
+            if (isset($data['logo']) && $data['logo'] instanceof \Illuminate\Http\UploadedFile) {
+                $file = $data['logo'];
+                $logoName = time() . '_' . $file->getClientOriginalName();
+                $file->storeAs('public/logos', $logoName);
+            }
 
-        // Ambil field yang dikirim dan tidak kosong/null
-        $data = [];
-        foreach ($allowedFields as $field) {
-            if ($request->filled($field)) {
-                $data[$field] = $request->input($field);
+            // Jika ada ID → Update
+            if (isset($data['companyid'])) {
+                $company = Company::find($data['companyid']);
+                if (!$company) {
+                    $results[] = [
+                        'status' => 'failed',
+                        'message' => "Company with ID {$data['companyid']} not found"
+                    ];
+                    continue;
+                }
+
+                // Update hanya field yang dikirim (dan tidak null)
+                $updateData = collect($data)->only([
+                    'name',
+                    'brandname',
+                    'entitytype',
+                    'noindukberusaha',
+                    'npwp',
+                    'address',
+                    'telpno',
+                    'companyemail',
+                    'holdingflag',
+                    'countryid',
+                    'companydesignid',
+                ])->filter(fn($v) => !is_null($v))->toArray();
+
+                if ($logoName) {
+                    // Hapus logo lama
+                    if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
+                        Storage::delete('public/logos/' . $company->logo);
+                    }
+                    $updateData['logo'] = $logoName;
+                }
+
+                $updateData['updatedby'] = $data['updatedby'] ?? null;
+                $updateData['updatedon'] = Carbon::now();
+
+                $company->update($updateData);
+                $results[] = [
+                    'status' => 'updated',
+                    'data' => $company->fresh()
+                ];
+            } 
+            // Jika tidak ada ID → Insert
+            else {
+                $newCompany = Company::create([
+                    'name' => $data['name'],
+                    'brandname' => $data['brandname'] ?? null,
+                    'entitytype' => $data['entitytype'] ?? null,
+                    'noindukberusaha' => $data['noindukberusaha'] ?? null,
+                    'npwp' => $data['npwp'] ?? null,
+                    'address' => $data['address'] ?? null,
+                    'telpno' => $data['telpno'] ?? null,
+                    'companyemail' => $data['companyemail'] ?? null,
+                    'logo' => $logoName,
+                    'holdingflag' => $data['holdingflag'] ?? false,
+                    'createdby' => $data['createdby'] ?? null,
+                    'createdon' => Carbon::now(),
+                    'countryid' => $data['countryid'] ?? null,
+                    'companydesignid' => $data['companydesignid'] ?? null,
+                ]);
+
+                $results[] = [
+                    'status' => 'created',
+                    'data' => $newCompany
+                ];
             }
         }
 
-        // Tangani upload logo (opsional)
-        if ($request->hasFile('logo')) {
-            $file = $request->file('logo');
-
-            // Hapus logo lama jika ada
-            if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
-                Storage::delete('public/logos/' . $company->logo);
-            }
-
-            // Simpan logo baru
-            $logoName = time() . '_' . $file->getClientOriginalName();
-            $file->storeAs('public/logos', $logoName);
-            $data['logo'] = $logoName;
-        }
-
-        // Tambahkan metadata update
-        $data['updatedby'] = $request->updateby;
-        $data['updatedon'] = Carbon::now();
-
-        // Update data (hanya field yang dikirim)
-        $isUpdated = $company->update($data);
-
         return response()->json([
             'status' => 'success',
-            'message' => 'Company updated successfully',
-            'data' => $company->fresh()
+            'count' => count($results),
+            'results' => $results
         ]);
     }
 

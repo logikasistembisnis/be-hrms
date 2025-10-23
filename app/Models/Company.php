@@ -25,7 +25,6 @@ class Company extends Model
         'companyemail',
         'logo',
         'holdingflag',
-        'desainperusahaan',
         'createdby',
         'createdon',
         'updatedby',
