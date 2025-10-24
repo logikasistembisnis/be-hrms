@@ -28,8 +28,9 @@ $router->get('/companydesign', 'CompanyDesignController@index');
 $router->get('/country', 'CountryController@index');
 
 $router->get('/company', 'CompanyController@index');
-$router->put('/company', 'CompanyController@upsert');
-$router->delete('/company/{id}', 'CompanyController@destroy');
+$router->put('/company', 'CompanyController@upsertCompany');
+$router->post('/company/{id}/details', 'CompanyController@updateDetails');
+$router->delete('/company/{id}', 'CompanyController@destroyCompany');
     
 $router->get('/storage/{path:.*}', function ($path) {
     $filePath = storage_path('app/public/' . $path);
