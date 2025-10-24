@@ -24,20 +24,21 @@ class Company extends Model
         'telpno',
         'companyemail',
         'logo',
-        'holdingflag',
         'createdby',
         'createdon',
         'updatedby',
         'updatedon',
         'countryid',
         'companydesignid',
+        'reporttocompanyid',
     ];
 
     protected $casts = [
-        'holdingflag' => 'boolean',
         'createdon' => 'datetime',
         'updatedon' => 'datetime',
-        'countryid' => 'integer'
+        'countryid' => 'integer',
+        'companydesignid' => 'integer',
+        'reporttocompanyid' => 'integer'
     ];
 
     public function country()
@@ -48,5 +49,10 @@ class Company extends Model
     public function companydesign()
     {
         return $this->belongsTo(CompanyDesign::class,'companydesignid', 'companydesignid');
+    }
+
+    public function reporttocompany()
+    {
+        return $this->belongsTo(Company::class,'reporttocompanyid', 'companyid');
     }
 }
