@@ -41,7 +41,7 @@ class CompanyController extends Controller
     public function upsertCompany(Request $request)
     {
         // Ambil semua data dari body request
-        $companiesData = $request->all();
+        $companiesData = $request->json()->all();
 
         // Pastikan request body berupa array (karena dikirim dalam bentuk [])
         if (!is_array($companiesData)) {
@@ -70,7 +70,6 @@ class CompanyController extends Controller
             }
 
             $validated = $validator->validated();
-
             // Jika ada companyid → update data
             if (isset($validated['companyid'])) {
                 $company = Company::find($validated['companyid']);
@@ -194,6 +193,64 @@ class CompanyController extends Controller
             'data' => $company->fresh() // ambil data terbaru setelah update
         ]);
     }
+
+    /**
+     * PUT /company/companydesign
+     * Update companydesignid dan reporttocompanyid untuk beberapa perusahaan sekaligus
+     */
+    public function updateDesignAndReportTo(Request $request)
+    {
+        $companiesData = $request->all();
+
+        // Pastikan request berupa array
+        if (!is_array($companiesData)) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Request body harus berupa array data perusahaan'
+            ], 400);
+        }
+
+        $results = [];
+
+        foreach ($companiesData as $data) {
+            // Validasi setiap item perusahaan
+            $validator = Validator::make($data, [
+                'companyid'        => 'required|integer|exists:company,companyid',
+                'companydesignid'  => 'nullable|integer|exists:companydesign,companydesignid',
+                'reporttocompanyid' => 'nullable|integer|exists:company,companyid|different:companyid',
+            ]);
+
+            if ($validator->fails()) {
+                $results[] = [
+                    'status'  => 'failed',
+                    'message' => $validator->errors()->all()
+                ];
+                continue;
+            }
+
+            $validated = $validator->validated();
+            $company = Company::find($validated['companyid']);
+
+            // Update company design & reporttocompany
+            $company->update([
+                'companydesignid'  => $validated['companydesignid'] ?? $company->companydesignid,
+                'reporttocompanyid' => $validated['reporttocompanyid'] ?? $company->reporttocompanyid,
+                'updatedon'        => Carbon::now(),
+                'updatedby'        => $validated['updatedby'] ?? null,
+            ]);
+
+            $results[] = [
+                'status' => 'updated',
+                'data'   => $company->fresh()
+            ];
+        }
+
+        return response()->json([
+            'status'  => 'success',
+            'count'   => count($results),
+            'results' => $results
+        ]);
+    }    
 
     /**
      * DELETE /company/{id}
