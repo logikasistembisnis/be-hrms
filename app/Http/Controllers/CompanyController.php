@@ -17,8 +17,13 @@ class CompanyController extends Controller
     */
     public function index()
     {
-        // Ambil semua data perusahaan beserta relasi country
-        $companies = Company::with('country')->get()->map(function ($company) {
+        // Ambil semua data perusahaan beserta relasi 
+        $companies = Company::with([
+            'country',
+            'tenant',
+            'companydesign',
+            'reporttocompany'
+        ])->get()->map(function ($company) {
             // Tambahkan field baru: logo_url agar bisa diakses dari frontend
             $company->logo_url = $company->logo
                 ? url("/storage/logos/" . $company->logo)
