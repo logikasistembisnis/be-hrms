@@ -29,8 +29,13 @@ class Tenant extends Model
         'holdingcompanyid' => 'integer',
     ];
 
-    public function companies()
+    public function tenant()
     {
-        return $this->hasMany(Company::class, 'holdingcompanyid', 'companyid');
+        return $this->hasMany(Company::class, 'tenantid', 'tenantid');
+    }
+    
+    public function holdingCompany()
+    {
+        return $this->belongsTo(Company::class, 'holdingcompanyid', 'companyid');
     }
 }
