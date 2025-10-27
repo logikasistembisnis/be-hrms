@@ -31,6 +31,7 @@ class Company extends Model
         'countryid',
         'companydesignid',
         'reporttocompanyid',
+        'tenantid',
     ];
 
     protected $casts = [
@@ -38,7 +39,8 @@ class Company extends Model
         'updatedon' => 'datetime',
         'countryid' => 'integer',
         'companydesignid' => 'integer',
-        'reporttocompanyid' => 'integer'
+        'reporttocompanyid' => 'integer',
+        'tenantid' => 'integer'
     ];
 
     public function country()
@@ -54,5 +56,10 @@ class Company extends Model
     public function reporttocompany()
     {
         return $this->belongsTo(Company::class,'reporttocompanyid', 'companyid');
+    }
+
+    public function tenant()
+    {
+        return $this->belongsTo(Tenant::class, 'tenantid', 'tenantid');
     }
 }
