@@ -40,3 +40,7 @@ $router->get('/storage/{path:.*}', function ($path) {
     }
     return response()->file($filePath);
 });
+
+$router->get('/tenant', 'TenantController@index');
+$router->get('/tenant/{id}', 'TenantController@show');
+$router->put('/tenant/{id}', 'TenantController@update');
