@@ -44,3 +44,5 @@ $router->get('/storage/{path:.*}', function ($path) {
 $router->get('/tenant', 'TenantController@index');
 $router->get('/tenant/{id}', 'TenantController@show');
 $router->put('/tenant/{id}', 'TenantController@update');
+
+$router->get('/baseorgstructure', 'BaseOrgStructureController@index');
