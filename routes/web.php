@@ -49,3 +49,5 @@ $router->get('/baseorgstructure', 'BaseOrgStructureController@index');
 
 $router->get('/companybaseorgstruc', 'CompanyBaseOrgStrucController@index');
 $router->put('/companybaseorgstruc', 'CompanyBaseOrgStrucController@upsertCompanyBaseOrgStruc');
+
+$router->get('/hrbaserule', 'HRBaseRuleController@index');
