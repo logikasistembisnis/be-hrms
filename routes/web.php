@@ -46,3 +46,6 @@ $router->get('/tenant/{id}', 'TenantController@show');
 $router->put('/tenant/{id}', 'TenantController@update');
 
 $router->get('/baseorgstructure', 'BaseOrgStructureController@index');
+
+$router->get('/companybaseorgstruc', 'CompanyBaseOrgStrucController@index');
+$router->put('/companybaseorgstruc', 'CompanyBaseOrgStrucController@upsertCompanyBaseOrgStruc');
