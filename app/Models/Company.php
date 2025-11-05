@@ -62,4 +62,9 @@ class Company extends Model
     {
         return $this->belongsTo(Tenant::class, 'tenantid', 'tenantid');
     }
+
+    public function companybaseorgstruc()
+    {
+        return $this->hasMany(CompanyBaseOrgStruc::class, 'companyid', 'companyid');
+    }
 }
