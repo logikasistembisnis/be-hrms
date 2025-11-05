@@ -18,9 +18,4 @@ class CompanyDesign extends Model
         'updatedby',
         'updatedon',
     ];
-
-    public function companies()
-    {
-        return $this->hasMany(Company::class, 'companydesignid', 'companydesignid');
-    }
 }
