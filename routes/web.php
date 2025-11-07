@@ -51,3 +51,6 @@ $router->get('/companybaseorgstruc', 'CompanyBaseOrgStrucController@index');
 $router->put('/companybaseorgstruc', 'CompanyBaseOrgStrucController@upsertCompanyBaseOrgStruc');
 
 $router->get('/hrbaserule', 'HRBaseRuleController@index');
+
+$router->get('/companyhrrule', 'CompanyHRRuleController@index');
+$router->put('/companyhrrule', 'CompanyHRRuleController@upsertCompanyHRRule');
