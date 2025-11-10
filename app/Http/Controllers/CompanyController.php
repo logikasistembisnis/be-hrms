@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use App\Models\Company;
 use App\Models\Country;
 use Carbon\Carbon;
@@ -15,8 +17,9 @@ class CompanyController extends Controller
      * GET /company
      * Menampilkan semua perusahaan beserta country dan URL logo
     */
-    public function index()
+    public function index(): JsonResponse
     {
+        try {
         // Ambil semua data perusahaan beserta relasi 
         $companies = Company::with([
             'country',
@@ -34,17 +37,34 @@ class CompanyController extends Controller
         // Kembalikan respons dalam format JSON
         return response()->json([
             'status' => 'success',
+            'message' => 'Data berhasil diambil',
             'count' => $companies->count(),
             'data' => $companies
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 
     /**
      * PUT /company
      * Insert atau update data perusahaan (name, countryid)
     */
-    public function upsertCompany(Request $request)
+    public function upsertCompany(Request $request) : JsonResponse
     {
+        try {
         // Ambil semua data dari body request
         $companiesData = $request->json()->all();
 
@@ -118,15 +138,31 @@ class CompanyController extends Controller
             'status' => 'success',
             'count' => count($results),
             'results' => $results
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 
     /**
      * PUT /company/{id}/details
      * Update detail perusahaan (brandname, npwp, logo, dll)
     */
-    public function updateDetails(Request $request, $id)
+    public function updateDetails(Request $request, $id) : JsonResponse
     {
+        try {
         // Cek apakah company dengan ID tsb ada
         $company = Company::find($id);
         if (!$company) {
@@ -194,17 +230,33 @@ class CompanyController extends Controller
 
         return response()->json([
             'status' => 'success',
-            'message' => 'Company details updated successfully',
+            'message' => 'Detail Perusahaan berhasil diperbarui',
             'data' => $company->fresh() // ambil data terbaru setelah update
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 
     /**
      * PUT /company/companydesign
      * Update companydesignid dan reporttocompanyid untuk beberapa perusahaan sekaligus
      */
-    public function updateDesignAndReportTo(Request $request)
+    public function updateDesignAndReportTo(Request $request) : JsonResponse
     {
+        try {
         $companiesData = $request->all();
 
         // Pastikan request berupa array
@@ -254,20 +306,39 @@ class CompanyController extends Controller
             'status'  => 'success',
             'count'   => count($results),
             'results' => $results
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }    
 
     /**
      * DELETE /company/{id}
      * Menghapus perusahaan + file logo-nya
      */
-    public function destroyCompany($id)
+    public function destroyCompany($id) : JsonResponse
     {
+        try {
         // Cek apakah perusahaan ada
         $company = Company::find($id);
         if (!$company) {
-            return response()->json(['error' => 'Company not found'], 404);
-        }
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Company not found'
+                ], 404);
+            }
 
         // Hapus file logo dari storage jika ada
         if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
@@ -280,6 +351,21 @@ class CompanyController extends Controller
         return response()->json([
             'status' => 'success',
             'message' => 'Company deleted successfully'
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 }

@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use App\Models\CompanyBaseOrgStruc;
 use Carbon\Carbon;
 
@@ -14,25 +16,43 @@ class CompanyBaseOrgStrucController extends Controller
      * GET /companybaseorgstruc
      * Menampilkan semua perusahaan dan base organisasi
     */
-    public function index()
+    public function index() : JsonResponse
     {
+        try {
         // Ambil semua data perusahaan beserta relasi 
         $companybaseorgstruc = CompanyBaseOrgStruc::with(['company', 'baseorgstructure'])->get();
 
         // Kembalikan respons dalam format JSON
         return response()->json([
             'status' => 'success',
+            'message' => 'Data berhasil diambil',
             'count' => $companybaseorgstruc->count(),
             'data' => $companybaseorgstruc
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 
     /**
      * PUT /companybaseorgstruc
      * Insert atau update data perusahaan dengan base organisasi
     */
-    public function upsertCompanyBaseOrgStruc(Request $request)
+    public function upsertCompanyBaseOrgStruc(Request $request) : JsonResponse
     {
+        try {
         // Ambil semua data dari body request
         $companybaseorgstrucData = $request->json()->all();
 
@@ -109,6 +129,21 @@ class CompanyBaseOrgStrucController extends Controller
             'status' => 'success',
             'count' => count($results),
             'results' => $results
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 }

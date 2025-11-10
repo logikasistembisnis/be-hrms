@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 use App\Models\CompanyHRRule;
 use Carbon\Carbon;
 
@@ -14,25 +16,43 @@ class CompanyHRRuleController extends Controller
      * GET /companyhrrule
      * Menampilkan semua perusahaan dan base organisasi
     */
-    public function index()
+    public function index() : JsonResponse
     {
+        try {
         // Ambil semua data perusahaan beserta relasi 
         $companyhrrule = CompanyHRRule::with(['company', 'hrbaserule'])->get();
 
         // Kembalikan respons dalam format JSON
         return response()->json([
             'status' => 'success',
+            'message' => 'Data berhasil diambil',
             'count' => $companyhrrule->count(),
             'data' => $companyhrrule
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 
     /**
      * PUT /companyhrrule
      * Insert atau update data perusahaan dengan base organisasi
     */
-    public function upsertCompanyHRRule(Request $request)
+    public function upsertCompanyHRRule(Request $request) : JsonResponse
     {
+        try {
         // Ambil semua data dari body request
         $companyhrruleData = $request->json()->all();
 
@@ -125,6 +145,21 @@ class CompanyHRRuleController extends Controller
             'status' => 'success',
             'count' => count($results),
             'results' => $results
-        ]);
+        ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+        ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+        }
     }
 }

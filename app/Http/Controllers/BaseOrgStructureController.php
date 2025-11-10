@@ -3,22 +3,39 @@
 namespace App\Http\Controllers;
 
 use App\Models\BaseOrgStructure;
+use Illuminate\Database\QueryException;
+use Illuminate\Http\JsonResponse;
 
 class BaseOrgStructureController extends Controller
 {
-    public function index()
+    public function index(): JsonResponse
     {
         try {
             $data = BaseOrgStructure::all();
+
             return response()->json([
                 'status' => 'success',
-                'count' => count($data),
+                'message' => 'Data berhasil diambil',
+                'count' => $data->count(),
                 'data' => $data
-            ]);
-        } catch (\Exception $e) {
+            ], 200);
+            
+        } catch (QueryException $e) {
+            // Tangani kesalahan dari database
             return response()->json([
                 'status' => 'error',
-                'message' => $e->getMessage()
+                'message' => 'Terjadi kesalahan pada database',
+                'count' => 0,
+                'data' => [],
+            ], 500);
+
+        } catch (\Exception $e) {
+            // Tangani kesalahan umum lainnya
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga',
+                'count' => 0,
+                'data' => [],
             ], 500);
         }
     }
