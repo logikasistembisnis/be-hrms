@@ -56,3 +56,4 @@ $router->get('/companyhrrule', 'CompanyHRRuleController@index');
 $router->put('/companyhrrule', 'CompanyHRRuleController@upsertCompanyHRRule');
 
 $router->get('/daftarcuti', 'DaftarCutiController@index');
+$router->get('/daftarizin', 'DaftarIzinController@index');
