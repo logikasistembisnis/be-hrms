@@ -60,3 +60,6 @@ $router->get('/daftarizin', 'DaftarIzinController@index');
 
 $router->get('/companycuti', 'CompanyCutiController@index');
 $router->put('/companycuti', 'CompanyCutiController@upsertCompanyCuti');
+
+$router->get('/companyizin', 'CompanyIzinController@index');
+$router->put('/companyizin', 'CompanyIzinController@upsertCompanyIzin');
