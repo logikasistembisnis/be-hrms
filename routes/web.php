@@ -63,3 +63,6 @@ $router->put('/companycuti', 'CompanyCutiController@upsertCompanyCuti');
 
 $router->get('/companyizin', 'CompanyIzinController@index');
 $router->put('/companyizin', 'CompanyIzinController@upsertCompanyIzin');
+
+$router->get('/hariliburnasional', 'HariLiburNasionalController@index');
+$router->get('/syncliburnasional', 'HariLiburNasionalController@fetchHariLibur');
