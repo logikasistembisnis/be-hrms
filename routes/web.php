@@ -66,3 +66,7 @@ $router->put('/companyizin', 'CompanyIzinController@upsertCompanyIzin');
 
 $router->get('/hariliburnasional', 'HariLiburNasionalController@index');
 $router->get('/syncliburnasional', 'HariLiburNasionalController@fetchHariLibur');
+
+$router->get('/compliburnasional', 'CompLiburNasionalController@index');
+$router->post('/compliburnasional', 'CompLiburNasionalController@upsertCompLiburNasional');
+$router->delete('/compliburnasional/{id}', 'CompLiburNasionalController@destroy');
