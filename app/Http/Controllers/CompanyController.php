@@ -205,12 +205,12 @@ class CompanyController extends Controller
             // Buat nama file unik (timestamp + nama asli)
             $logoName = time() . '_' . $file->getClientOriginalName();
 
-            // Simpan ke storage/app/public/logos/
-            $file->storeAs('public/logos', $logoName);
+            // Simpan ke storage/app/logos/
+            $file->storeAs('logos', $logoName);
 
             // Hapus logo lama (jika ada di storage)
-            if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
-                Storage::delete('public/logos/' . $company->logo);
+            if ($company->logo && Storage::exists('logos/' . $company->logo)) {
+                Storage::delete('logos/' . $company->logo);
             }
         }
 
@@ -341,8 +341,8 @@ class CompanyController extends Controller
             }
 
         // Hapus file logo dari storage jika ada
-        if ($company->logo && Storage::exists('public/logos/' . $company->logo)) {
-            Storage::delete('public/logos/' . $company->logo);
+        if ($company->logo && Storage::exists('logos/' . $company->logo)) {
+            Storage::delete('logos/' . $company->logo);
         }
 
         // Hapus data perusahaan dari database

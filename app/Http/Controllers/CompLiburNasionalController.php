@@ -102,8 +102,8 @@ class CompLiburNasionalController extends Controller
                 }
 
                 // Jika ada file baru → hapus lama
-                if ($uploadedFile && $item->dokumenfilename && Storage::exists('public/compliburnasional/' . $item->dokumenfilename)) {
-                    Storage::delete('public/compliburnasional/' . $item->dokumenfilename);
+                if ($uploadedFile && $item->dokumenfilename && Storage::exists('compliburnasional/' . $item->dokumenfilename)) {
+                    Storage::delete('compliburnasional/' . $item->dokumenfilename);
                 }
 
                 $item->update([
@@ -174,8 +174,8 @@ class CompLiburNasionalController extends Controller
             }
 
             // Hapus file dari storage jika ada
-            if ($item->dokumenfilename && Storage::exists('public/compliburnasional/' . $item->dokumenfilename)) {
-                Storage::delete('public/compliburnasional/' . $item->dokumenfilename);
+            if ($item->dokumenfilename && Storage::exists('compliburnasional/' . $item->dokumenfilename)) {
+                Storage::delete('compliburnasional/' . $item->dokumenfilename);
             }
 
             $item->delete();
