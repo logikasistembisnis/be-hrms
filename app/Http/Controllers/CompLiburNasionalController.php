@@ -24,7 +24,7 @@ class CompLiburNasionalController extends Controller
                 ->map(function ($item) {
                     // Tambahkan URL file dokumen agar bisa diakses frontend
                     $item->dokumen_url = $item->dokumenfilename
-                        ? url("/storage/compliburnasional/" . $item->dokumenfilename)
+                        ? url("/compliburnasional/" . $item->dokumenfilename)
                         : null;
                     return $item;
                 });
@@ -87,7 +87,8 @@ class CompLiburNasionalController extends Controller
             // Jika upload dokumen baru
             if ($uploadedFile) {
                 $fileNameToStore = time() . '_' . $uploadedFile->getClientOriginalName();
-                $uploadedFile->storeAs('public/compliburnasional', $fileNameToStore);
+                $tujuanFolder = public_path('compliburnasional');
+                $uploadedFile->move($tujuanFolder, $fileNameToStore);
             }
 
             // Jika ada ID → update
