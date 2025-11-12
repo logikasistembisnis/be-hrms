@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Storage; // Pastikan ini di-import
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use App\Models\CompLiburNasional;
@@ -14,7 +14,6 @@ class CompLiburNasionalController extends Controller
 {
     /**
      * GET /CompLiburNasional
-     * Menampilkan semua data libur nasional perusahaan beserta relasi
      */
     public function index(): JsonResponse
     {
@@ -22,9 +21,8 @@ class CompLiburNasionalController extends Controller
             $compliburnasional = CompLiburNasional::with(['company', 'hariliburnasional'])
                 ->get()
                 ->map(function ($item) {
-                    // Tambahkan URL file dokumen agar bisa diakses frontend
                     $item->dokumen_url = $item->dokumenfilename
-                        ? url("/compliburnasional/" . $item->dokumenfilename)
+                        ? url("/storage/compliburnasional/" . $item->dokumenfilename) 
                         : null;
                     return $item;
                 });
@@ -54,12 +52,10 @@ class CompLiburNasionalController extends Controller
 
     /**
      * POST /CompLiburNasional
-     * Insert atau update data perusahaan beserta dokumen
      */
     public function upsertCompLiburNasional(Request $request): JsonResponse
     {
         try {
-            // Support form-data (bukan JSON)
             $data = $request->all();
 
             $validator = Validator::make($data, [
@@ -82,67 +78,59 @@ class CompLiburNasionalController extends Controller
 
             $validated = $validator->validated();
             $uploadedFile = $request->file('dokumenfilename');
-            $fileNameToStore = null;
+            $fileNameToStore = null; // Default
+
+            // Jika ada ID (update) → ambil nama file lama
+            if (!empty($validated['compliburnasionalid'])) {
+                $item = CompLiburNasional::find($validated['compliburnasionalid']);
+                if (!$item) {
+                     return response()->json(['status' => 'error', 'message' => 'Data tidak ditemukan'], 404);
+                }
+                // Nama file default adalah nama file yg sudah ada
+                $fileNameToStore = $item->dokumenfilename;
+            }
 
             // Jika upload dokumen baru
             if ($uploadedFile) {
                 $fileNameToStore = time() . '_' . $uploadedFile->getClientOriginalName();
-                $tujuanFolder = public_path('compliburnasional');
-                $uploadedFile->move($tujuanFolder, $fileNameToStore);
+                $uploadedFile->storeAs('compliburnasional', $fileNameToStore);
+
+                // Jika ini adalah update DAN ada file lama, hapus file lama
+                if (isset($item) && $item->dokumenfilename) {
+                    if (Storage::exists('compliburnasional/' . $item->dokumenfilename)) {
+                        Storage::delete('compliburnasional/' . $item->dokumenfilename);
+                    }
+                }
             }
 
-            // Jika ada ID → update
-            if (!empty($validated['compliburnasionalid'])) {
-                $item = CompLiburNasional::find($validated['compliburnasionalid']);
-                if (!$item) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => 'Data tidak ditemukan',
-                    ], 404);
-                }
-
-                // Jika ada file baru → hapus lama
-                if ($uploadedFile && $item->dokumenfilename && Storage::exists('compliburnasional/' . $item->dokumenfilename)) {
-                    Storage::delete('compliburnasional/' . $item->dokumenfilename);
-                }
-
-                $item->update([
+            $compLibur = CompLiburNasional::updateOrCreate(
+                [
+                    // Cari berdasarkan ID ini
+                    'compliburnasionalid' => $validated['compliburnasionalid'] ?? null
+                ],
+                [
+                    // Update atau Buat dengan data ini
                     'companyid' => $validated['companyid'],
                     'hariliburnasid' => $validated['hariliburnasid'],
                     'startdate' => $validated['startdate'],
                     'enddate' => $validated['enddate'] ?? null,
                     'namatanggal' => $validated['namatanggal'],
                     'potongcutitahunan' => $validated['potongcutitahunan'],
-                    'dokumenfilename' => $fileNameToStore ?? $item->dokumenfilename,
+                    'dokumenfilename' => $fileNameToStore, // Nama file baru (atau lama jika tidak diubah)
                     'updatedon' => Carbon::now(),
                     'updatedby' => $data['updatedby'] ?? null,
-                ]);
-
-                return response()->json([
-                    'status' => 'success',
-                    'message' => 'Data berhasil diperbarui',
-                    'data' => $item->fresh(),
-                ], 200);
-            }
-
-            // Jika tidak ada ID → insert baru
-            $new = CompLiburNasional::create([
-                'companyid' => $validated['companyid'],
-                'hariliburnasid' => $validated['hariliburnasid'],
-                'startdate' => $validated['startdate'],
-                'enddate' => $validated['enddate'] ?? null,
-                'namatanggal' => $validated['namatanggal'],
-                'potongcutitahunan' => $validated['potongcutitahunan'],
-                'dokumenfilename' => $fileNameToStore,
-                'createdon' => Carbon::now(),
-                'createdby' => $data['createdby'] ?? null,
-            ]);
+                    // 'createdon' dan 'createdby' akan diisi otomatis jika ini 'create'
+                    'createdon' => Carbon::now(), 
+                    'createdby' => $data['createdby'] ?? null,
+                ]
+            );
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Data baru berhasil dibuat',
-                'data' => $new,
-            ], 201);
+                'message' => 'Data berhasil disimpan',
+                'data' => $compLibur,
+            ], 200); // 200 OK (untuk create atau update)
+
         } catch (QueryException $e) {
             return response()->json([
                 'status' => 'error',
@@ -160,7 +148,6 @@ class CompLiburNasionalController extends Controller
 
     /**
      * DELETE /CompLiburNasional/{id}
-     * Hapus data dan file dokumennya
      */
     public function destroy($id): JsonResponse
     {
@@ -172,10 +159,9 @@ class CompLiburNasionalController extends Controller
                     'message' => 'Data tidak ditemukan'
                 ], 404);
             }
-
-            // Hapus file dari storage jika ada
-            if ($item->dokumenfilename && Storage::exists('compliburnasional/' . $item->dokumenfilename)) {
-                Storage::delete('compliburnasional/' . $item->dokumenfilename);
+            
+            if ($item->dokumenfilename && Storage::exists('public/compliburnasional/' . $item->dokumenfilename)) {
+                Storage::delete('public/compliburnasional/' . $item->dokumenfilename);
             }
 
             $item->delete();
@@ -185,15 +171,9 @@ class CompLiburNasionalController extends Controller
                 'message' => 'Data dan dokumen berhasil dihapus'
             ], 200);
         } catch (QueryException $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan pada database'
-            ], 500);
+             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan pada database'], 500);
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Terjadi kesalahan tak terduga'
-            ], 500);
+             return response()->json(['status' => 'error', 'message' => 'Terjadi kesalahan tak terduga'], 500);
         }
     }
 }
