@@ -70,3 +70,6 @@ $router->get('/syncliburnasional', 'HariLiburNasionalController@fetchHariLibur')
 $router->get('/compliburnasional', 'CompLiburNasionalController@index');
 $router->post('/compliburnasional', 'CompLiburNasionalController@upsertCompLiburNasional');
 $router->delete('/compliburnasional/{id}', 'CompLiburNasionalController@destroy');
+
+$router->get('/companyworkinghours', 'CompanyWorkingHoursController@index');
+$router->put('/companyworkinghours', 'CompanyWorkingHoursController@upsertCompanyWorkingHours');
