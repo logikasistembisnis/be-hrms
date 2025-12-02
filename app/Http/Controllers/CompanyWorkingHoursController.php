@@ -20,7 +20,7 @@ class CompanyWorkingHoursController extends Controller
     {
         try {
         // Ambil semua data 
-        $companyworkinghours = CompanyWorkingHours::all();
+        $companyworkinghours = CompanyWorkingHours::with(['company'])->get();
 
         // Kembalikan respons dalam format JSON
         return response()->json([
@@ -70,6 +70,7 @@ class CompanyWorkingHoursController extends Controller
             // Validasi tiap item perusahaan
             $validator = validator($data, [
                 'companyworkinghoursid'   => 'nullable|integer|exists:companyworkinghours,companyworkinghoursid',
+                'companyid'   => 'required|integer|exists:company,companyid',
                 'tipejadwal'   => 'required|string|max:255',
                 'kategori'   => 'required|string|max:255',
                 'skema'   => 'required|string|max:255',
@@ -94,6 +95,7 @@ class CompanyWorkingHoursController extends Controller
                 $companyworkinghours = CompanyWorkingHours::find($validated['companyworkinghoursid']);
                 if ($companyworkinghours) {
                     $companyworkinghours->update([
+                        'companyid'  => $validated['companyid'],
                         'tipejadwal'  => $validated['tipejadwal'],
                         'kategori'  => $validated['kategori'],
                         'skema'       => $validated['skema'],
@@ -120,6 +122,7 @@ class CompanyWorkingHoursController extends Controller
             // Jika tidak ada ID → insert baru
             else {
                 $newCompanyWorkingHours = CompanyWorkingHours::create([
+                    'companyid'  => $validated['companyid'],
                     'tipejadwal'  => $validated['tipejadwal'],
                     'kategori'  => $validated['kategori'],
                     'skema'       => $validated['skema'],

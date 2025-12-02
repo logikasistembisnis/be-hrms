@@ -16,7 +16,7 @@ class CompanyWorkingBreaktimeController extends Controller
     public function index() : JsonResponse
     {
         try {
-        $companyworkingbreaktime = CompanyWorkingBreaktime::all();
+        $companyworkingbreaktime = CompanyWorkingBreaktime::with(['companyworkinghours'])->get();
 
         // Kembalikan respons dalam format JSON
         return response()->json([

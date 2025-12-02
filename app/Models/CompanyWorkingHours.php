@@ -15,6 +15,7 @@ class CompanyWorkingHours extends Model
 
     protected $fillable = [
         'companyworkinghoursid',
+        'companyid',
         'tipejadwal',
         'kategori',
         'skema',
@@ -32,7 +33,13 @@ class CompanyWorkingHours extends Model
     protected $casts = [
         'durasi' => 'integer',
         'durasiistirahat' => 'integer',
+        'companyid' => 'integer',
         'createdon' => 'datetime',
         'updatedon' => 'datetime',
     ];
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class, 'companyid', 'companyid');
+    }
 }
