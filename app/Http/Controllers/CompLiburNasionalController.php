@@ -105,22 +105,18 @@ class CompLiburNasionalController extends Controller
 
             $compLibur = CompLiburNasional::updateOrCreate(
                 [
-                    // Cari berdasarkan ID ini
                     'compliburnasionalid' => $validated['compliburnasionalid'] ?? null
                 ],
                 [
-                    // Update atau Buat dengan data ini
                     'companyid' => $validated['companyid'],
                     'hariliburnasid' => $validated['hariliburnasid'],
                     'startdate' => $validated['startdate'],
                     'enddate' => $validated['enddate'] ?? null,
                     'namatanggal' => $validated['namatanggal'],
                     'potongcutitahunan' => $validated['potongcutitahunan'],
-                    'dokumenfilename' => $fileNameToStore, // Nama file baru (atau lama jika tidak diubah)
+                    'dokumenfilename' => $fileNameToStore,
                     'updatedon' => Carbon::now(),
-                    'updatedby' => $data['updatedby'] ?? null,
-                    // 'createdon' dan 'createdby' akan diisi otomatis jika ini 'create'
-                    'createdon' => Carbon::now(), 
+                    'updatedby' => $data['updatedby'] ?? null,'createdon' => Carbon::now(), 
                     'createdby' => $data['createdby'] ?? null,
                 ]
             );
