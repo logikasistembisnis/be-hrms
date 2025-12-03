@@ -73,6 +73,8 @@ $router->delete('/compliburnasional/{id}', 'CompLiburNasionalController@destroy'
 
 $router->get('/companyworkinghours', 'CompanyWorkingHoursController@index');
 $router->put('/companyworkinghours', 'CompanyWorkingHoursController@upsertCompanyWorkingHours');
+$router->delete('/companyworkinghours/{id}', 'CompanyWorkingHoursController@destroy');
 
 $router->get('/companyworkingbreaktime', 'CompanyWorkingBreaktimeController@index');
 $router->put('/companyworkingbreaktime', 'CompanyWorkingBreaktimeController@upsertCompanyWorkingBreaktime');
+$router->delete('/companyworkingbreaktime/{id}', 'CompanyWorkingBreaktimeController@destroy');

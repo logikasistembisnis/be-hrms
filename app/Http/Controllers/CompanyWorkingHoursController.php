@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use App\Models\CompanyWorkingHours;
+use App\Models\CompanyWorkingBreaktime;
 use Carbon\Carbon;
 
 class CompanyWorkingHoursController extends Controller
@@ -164,4 +166,52 @@ class CompanyWorkingHoursController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * DELETE /companyworkinghours/{id}
+     * Hapus CompanyWorkingHours berdasarkan id.
+     * Saat hapus, juga hapus CompanyWorkingBreaktime yang berelasi (transactional).
+     */
+    public function destroy($id) : JsonResponse
+    {
+        try {
+            DB::beginTransaction();
+
+            $cwh = CompanyWorkingHours::find($id);
+            if (!$cwh) {
+                DB::rollBack();
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "CompanyWorkingHours ID {$id} not found"
+                ], 404);
+            }
+
+            // hapus breaktime
+            CompanyWorkingBreaktime::where('companyworkinghoursid', $cwh->companyworkinghoursid)->delete();
+
+            // hapus header jam kerja
+            $cwh->delete();
+
+            DB::commit();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'CompanyWorkingHours dan breaktime terkait berhasil dihapus',
+                'data' => ['companyworkinghoursid' => (int) $id]
+            ], 200);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database saat menghapus',
+            ], 500);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga saat menghapus',
+            ], 500);
+        }
+    }
+
 }

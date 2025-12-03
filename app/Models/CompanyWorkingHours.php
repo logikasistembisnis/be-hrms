@@ -42,4 +42,18 @@ class CompanyWorkingHours extends Model
     {
         return $this->belongsTo(Company::class, 'companyid', 'companyid');
     }
+
+    public function breaktimes()
+    {
+        return $this->hasMany(CompanyWorkingBreaktime::class, 'companyworkinghoursid', 'companyworkinghoursid');
+    }
+
+    // pastikan breaktimes dihapus ketika working hours dihapus (application-level cascade)
+    protected static function booted()
+    {
+        static::deleting(function ($model) {
+            // Hapus breaktimes terkait (tidak memengaruhi company lain)
+            $model->breaktimes()->delete();
+        });
+    }
 }

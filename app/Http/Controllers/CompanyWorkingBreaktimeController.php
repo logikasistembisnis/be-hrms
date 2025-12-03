@@ -142,4 +142,39 @@ class CompanyWorkingBreaktimeController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * DELETE /companyworkingbreaktime/{id}
+     * Hapus breaktime berdasarkan id. Tidak memengaruhi CompanyWorkingHours.
+     */
+    public function destroy($id) : JsonResponse
+    {
+        try {
+            $break = CompanyWorkingBreaktime::find($id);
+            if (!$break) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => "CompanyWorkingBreaktime ID {$id} not found"
+                ], 404);
+            }
+
+            $break->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Breaktime berhasil dihapus',
+                'data' => ['id' => (int) $id]
+            ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan pada database saat menghapus breaktime',
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Terjadi kesalahan tak terduga saat menghapus breaktime',
+            ], 500);
+        }
+    }
 }
