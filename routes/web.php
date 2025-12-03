@@ -78,3 +78,8 @@ $router->delete('/companyworkinghours/{id}', 'CompanyWorkingHoursController@dest
 $router->get('/companyworkingbreaktime', 'CompanyWorkingBreaktimeController@index');
 $router->put('/companyworkingbreaktime', 'CompanyWorkingBreaktimeController@upsertCompanyWorkingBreaktime');
 $router->delete('/companyworkingbreaktime/{id}', 'CompanyWorkingBreaktimeController@destroy');
+
+$router->get('/grouprole', 'GroupRoleController@index');
+$router->get('/menu', 'MenuController@index');
+$router->put('/menu', 'MenuController@upsert');
+$router->delete('/menu/{id}', 'MenuController@destroy');
