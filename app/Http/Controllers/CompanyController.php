@@ -84,6 +84,7 @@ class CompanyController extends Controller
                 'companyid'   => 'nullable|integer|exists:company,companyid',
                 'name'        => 'required|string|max:255',
                 'countryid'   => 'required|integer|exists:country,countryid',
+                'tenantid'   => 'nullable|integer|exists:tenant,tenantid',
             ]);
 
             if ($validator->fails()) {
@@ -102,6 +103,7 @@ class CompanyController extends Controller
                     $company->update([
                         'name'       => $validated['name'],
                         'countryid'  => $validated['countryid'],
+                        'tenantid'  => $validated['tenantid'],
                         'updatedon'  => Carbon::now(),
                         'updatedby'  => $data['updatedby'] ?? null,
                     ]);
@@ -122,6 +124,7 @@ class CompanyController extends Controller
                 $newCompany = Company::create([
                     'name'       => $validated['name'],
                     'countryid'  => $validated['countryid'],
+                    'tenantid'  => $validated['tenantid'],
                     'createdon'  => Carbon::now(),
                     'createdby'  => $data['createdby'] ?? null,
                 ]);
