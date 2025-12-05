@@ -107,19 +107,20 @@ class OrganizationController extends Controller
         ]);
 
         $companyId = $request->input('companyid');
-        $now       = Carbon::now();
 
         DB::beginTransaction();
 
         try {
-            // LEVEL 1 : DIREKTORAT
+            // --- LEVEL 1 : DIREKTORAT ---
             if ($request->filled('companydirectorateid')) {
-                // pakai direktorat lama
-                $directorate = CompanyDirectorate::where('companydirectorateid', $request->directorateid)
+                $directorate = CompanyDirectorate::where('companydirectorateid', $request->companydirectorateid)
                     ->where('companyid', $companyId)
                     ->firstOrFail();
             } else {
-                // buat direktorat baru
+                // Validasi: Jika buat baru, nama wajib ada
+                if (!$request->directoratename) {
+                    throw new \Exception("Nama Direktorat wajib diisi jika membuat baru.");
+                }
                 $directorate = CompanyDirectorate::create([
                     'companyid'       => $companyId,
                     'directoratename' => $request->directoratename,
@@ -127,12 +128,15 @@ class OrganizationController extends Controller
                 ]);
             }
             
-            // LEVEL 2 : DIVISI (opsional)
+            // --- LEVEL 2 : DIVISI ---
             $division = null;
+            // Cek jika ID dikirim
             if ($request->filled('companydivisionid')) {
-                $division = CompanyDivision::where('companydivisionid', $request->divisionid)
+                $division = CompanyDivision::where('companydivisionid', $request->companydivisionid)
                     ->where('companyid', $companyId)
                     ->firstOrFail();
+            
+            // Jika tidak ada ID, tapi ada Nama -> Buat Baru
             } elseif ($request->filled('divisionname')) {
                 $division = CompanyDivision::create([
                     'companydirectorateid' => $directorate->companydirectorateid,
@@ -142,10 +146,10 @@ class OrganizationController extends Controller
                 ]);
             }
 
-            // LEVEL 3 : DEPARTMENT (opsional)
+            // --- LEVEL 3 : DEPARTMENT ---
             $department = null;
             if ($request->filled('companydepartmentid')) {
-                $department = CompanyDepartment::where('companydepartmentid', $request->departmentid)
+                $department = CompanyDepartment::where('companydepartmentid', $request->companydepartmentid)
                     ->where('companyid', $companyId)
                     ->firstOrFail();
             } elseif ($division && $request->filled('departmentname')) {
@@ -157,17 +161,17 @@ class OrganizationController extends Controller
                 ]);
             }
 
-            // LEVEL 4 : UNIT KERJA (opsional)
+            // --- LEVEL 4 : UNIT KERJA ---
             $unitKerja = null;
             if ($department && $request->filled('unitkerjaname')) {
 
                 $docFilename = null;
 
-                // Upload file jika ada
                 if ($request->hasFile('dokumenfile')) {
                     $file        = $request->file('dokumenfile');
-                    $docFilename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
-                    $file->storeAs('unitkerja', $docFilename);
+                    $cleanName   = str_replace(' ', '_', $file->getClientOriginalName());
+                    $docFilename = time() . '_' . $cleanName;
+                    $file->storeAs('unitkerja', $docFilename, 'public'); 
                 }
 
                 $unitKerja = CompanyUnitKerja::create([
@@ -193,22 +197,19 @@ class OrganizationController extends Controller
                 ]
             ], 200);
 
-        } catch (QueryException $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             DB::rollBack();
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Terjadi kesalahan pada database',
-                'count'   => 0,
-                'data'    => []
-            ], 500);
+                'message' => 'Data induk (Direktorat/Divisi/Dept) tidak ditemukan. Cek ID yang dikirim.',
+                'debug'   => $e->getMessage()
+            ], 404);
 
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
                 'status'  => 'error',
-                'message' => 'Terjadi kesalahan tak terduga',
-                'count'   => 0,
-                'data'    => []
+                'message' => 'Terjadi kesalahan: ' . $e->getMessage(), // Tampilkan pesan error agar mudah debug
             ], 500);
         }
     }
