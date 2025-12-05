@@ -83,3 +83,7 @@ $router->get('/grouprole', 'GroupRoleController@index');
 $router->get('/menu', 'MenuController@index');
 $router->put('/menu', 'MenuController@upsert');
 $router->delete('/menu/{id}', 'MenuController@destroy');
+
+$router->get('/organization', 'OrganizationController@index');
+$router->post('/organization', 'OrganizationController@insertHierarchy');
+$router->post('/organization/nonactive', 'OrganizationController@nonactiveHierarchy');
