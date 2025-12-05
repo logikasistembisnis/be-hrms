@@ -43,7 +43,27 @@ class OrganizationController extends Controller
             ])
             ->where('companyid', $companyId)
             ->where('active', true)
-            ->get();
+            ->get()
+            ->map(function ($directorate) {
+                if (!empty($directorate->divisions)) {
+                    foreach ($directorate->divisions as $div) {
+                        if (!empty($div->departments)) {
+                            foreach ($div->departments as $dep) {
+                                if (!empty($dep->unitKerjas)) {
+                                    foreach ($dep->unitKerjas as $unit) {
+                                        if (!empty($unit->dokumenfilename)) {
+                                            $unit->dokumen_url = url('/storage/unitkerja/' . $unit->dokumenfilename);
+                                        } else {
+                                            $unit->dokumen_url = null;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return $directorate;
+            });
 
             return response()->json([
                 'status' => 'success',
@@ -83,7 +103,7 @@ class OrganizationController extends Controller
             'divisionname'    => 'nullable|string',
             'departmentname'  => 'nullable|string',
             'unitkerjaname'   => 'nullable|string',
-            'dokumenfile'     => 'nullable|file|max:2048'
+            'dokumenfilename' => 'nullable|file|max:2048'
         ]);
 
         $companyId = $request->input('companyid');
@@ -144,8 +164,8 @@ class OrganizationController extends Controller
                 $docFilename = null;
 
                 // Upload file jika ada
-                if ($request->hasFile('dokumenfile')) {
-                    $file        = $request->file('dokumenfile');
+                if ($request->hasFile('dokumenfilename')) {
+                    $file        = $request->file('dokumenfilename');
                     $docFilename = time() . '_' . str_replace(' ', '_', $file->getClientOriginalName());
                     $file->storeAs('unitkerja', $docFilename);
                 }
