@@ -28,6 +28,7 @@ class Tenant extends Model
         'updatedon' => 'datetime',
         'holdingflag' => 'boolean',
         'holdingcompanyid' => 'integer',
+        'active' => 'boolean',
     ];
 
     public function holdingCompany()
