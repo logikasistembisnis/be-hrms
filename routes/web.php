@@ -88,3 +88,6 @@ $router->delete('/menu/{id}', 'MenuController@destroy');
 $router->get('/organization', 'OrganizationController@index');
 $router->post('/organization', 'OrganizationController@insertHierarchy');
 $router->post('/organization/nonactive', 'OrganizationController@nonactiveHierarchy');
+
+$router->get('/jobfamily', 'JobFamilyController@index');
+$router->post('/jobfamily', 'JobFamilyController@insert');
