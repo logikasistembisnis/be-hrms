@@ -11,10 +11,11 @@ class Tenant extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'tenantid',
         'name',
+        'description',
         'holdingflag',
         'holdingcompanyid',
+        'active',
         'sysrowid',
         'createdby',
         'createdon',
