@@ -92,3 +92,6 @@ $router->post('/organization/nonactive', 'OrganizationController@nonactiveHierar
 $router->get('/jobfamily', 'JobFamilyController@index');
 $router->post('/jobfamily', 'JobFamilyController@insert');
 $router->post('/jobfamily/nonactive', 'JobFamilyController@nonactive');
+
+$router->get('/companyjobrepository', 'CompanyJobRepositoryController@index');
+$router->put('/companyjobrepository', 'CompanyJobRepositoryController@upsert');
