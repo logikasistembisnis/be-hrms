@@ -40,7 +40,7 @@ class JobFamilyController extends Controller
                 if (!empty($jobfamily->subfamily)) {
                     foreach ($jobfamily->subfamily as $sub) {
                         if (!empty($sub->dokumenfilename)) {
-                            $sub->dokumen_url = url('/storage/unitkerja/' . $sub->dokumenfilename);
+                            $sub->dokumen_url = url('/storage/subfamily/' . $sub->dokumenfilename);
                         } else {
                             $sub->dokumen_url = null;
                         }
