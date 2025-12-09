@@ -219,4 +219,103 @@ class JobFamilyController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Soft delete (set active = false)
+     * POST /jobfamily/nonactive
+     */
+    public function nonactive(Request $request): JsonResponse
+    {
+        $this->validate($request, [
+            'companyid'             => 'sometimes|integer',
+            'companyjobfamilyid'    => 'sometimes|integer',
+            'companysubfamilyid'    => 'sometimes|integer',
+            'active'                => 'sometimes|boolean',
+        ]);
+
+        $companyId = $request->input('companyid');
+        $jobfamilyId = $request->input('companyjobfamilyid');
+        $subfamilyId = $request->input('companysubfamilyid');
+        $active = $request->boolean('active', false);
+
+        try {
+            DB::beginTransaction();
+
+            if ($subfamilyId) {
+                $subfamily = CompanySubFamily::where('companysubfamilyid', $subfamilyId)
+                    ->when($companyId, fn($q) => $q->where('companyid', $companyId))
+                    ->firstOrFail();
+
+                $subfamily->active = $active;
+                $subfamily->updatedon = Carbon::now();
+                $subfamily->save();
+
+                DB::commit();
+                return response()->json([
+                    'status'=>'success',
+                    'message'=>'Sub Family berhasil dinonaktifkan',
+                    'count'=> 1,
+                    'data'=>[]
+                ],200);
+            }
+
+            if ($jobfamilyId) {
+                $jobfamily = CompanyJobFamily::where('companyjobfamilyid', $jobfamilyId)
+                    ->when($companyId, fn($q) => $q->where('companyid', $companyId))
+                    ->with('subfamily')
+                    ->firstOrFail();
+                
+                if ($jobfamily->subfamily()->where('active', true)->exists() && ! $active) {
+                    DB::rollBack();
+                    return response()->json([
+                        'status'=>'error',
+                        'message'=>'Job Family masih memiliki Unit aktif',
+                        'count'=>0,
+                        'data'=>[]
+                    ], 400);
+                }
+
+                if ($active) {
+                    $jobfamily->subfamily()->where('active', true)
+                    ->update(['active' => false, 'updatedon' => Carbon::now()]);
+                }
+                
+                $jobfamily->active = false;
+                $jobfamily->updatedon = Carbon::now();
+                $jobfamily->save();
+
+                DB::commit();
+                return response()->json([
+                    'status'=>'success',
+                    'message'=>'Job Family berhasil dinonaktifkan',
+                    'count'=> 1,
+                    'data'=>[]
+                ],200);
+            }
+            DB::rollBack();
+            return response()->json([
+                'status'=>'error',
+                'message'=>'Tidak ada target yang diberikan. Kirim salah satu id (unitid / departmentid / divisionid / directorateid).',
+                'count'=>0,
+                'data'=>[]
+            ], 400);
+        } catch (QueryException $e) {
+            DB::rollBack();
+            return response()->json([
+                'status'=>'error',
+                'message'=>'Terjadi kesalahan pada database',
+                'count'=>0,
+                'data'=>[]
+            ],500);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status'=>'error',
+                'message'=>'Terjadi kesalahan tak terduga: ',
+                'count'=>0,
+                'data'=>[]
+            ],500);
+        }
+    }
 }
