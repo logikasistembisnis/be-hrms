@@ -95,3 +95,4 @@ $router->post('/jobfamily/nonactive', 'JobFamilyController@nonactive');
 
 $router->get('/companyjobrepository', 'CompanyJobRepositoryController@index');
 $router->put('/companyjobrepository', 'CompanyJobRepositoryController@upsert');
+$router->delete('/companyjobrepository/{id}', 'CompanyJobRepositoryController@destroy');

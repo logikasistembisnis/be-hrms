@@ -77,6 +77,6 @@ class CompanyJobRepository extends Model
 
     public function reportto()
     {
-        return $this->belongsTo(CompanyJobRepository::class, 'companyjobrepositoryid', 'companyjobrepositoryid');
+        return $this->belongsTo(CompanyJobRepository::class, 'reporttoid', 'companyjobrepositoryid');
     }
 }

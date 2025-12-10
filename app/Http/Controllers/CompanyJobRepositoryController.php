@@ -211,4 +211,38 @@ class CompanyJobRepositoryController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * DELETE /companyjobrepository/{id}
+     * Hapus companyjobrepository berdasarkan id. 
+     */
+    public function destroy($id): JsonResponse
+    {
+        try {
+            $companyjobrepository = CompanyJobRepository::find($id);
+            if (!$companyjobrepository) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Company Job Repository not found'
+                ], 404);
+            }
+
+            $companyjobrepository->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Company Job Repository berhasil dihapus'
+            ], 200);
+        } catch (QueryException $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Terjadi kesalahan pada database'
+            ], 500);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error', 
+                'message' => 'Terjadi kesalahan tak terduga'
+            ], 500);
+        }
+    }
 }
